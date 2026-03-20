@@ -46,4 +46,6 @@ public class Account {
     public void setAccount_opening_date(Date account_opening_date) {
         this.account_opening_date = account_opening_date;
     }
+
+
 }

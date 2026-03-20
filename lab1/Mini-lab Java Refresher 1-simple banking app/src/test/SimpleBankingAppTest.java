@@ -12,39 +12,32 @@ public class SimpleBankingAppTest {
 	// under test (UUT) works properly
 	public static void testLoadData() {
 		SimpleBankingApp.loadUserData();
-
-		// 3-Verify phase
-		// we see in the load function of the UUT that we have loaded 3 users, so let's verify that
 		if (SimpleBankingApp.users.size() == 3)
 			System.out.println(TestUtils.TEXT_COLOR_GREEN + "testLoadData: loadUserData: TC1 passed" + TestUtils.TEXT_COLOR_RESET);
 		else
 			System.out.println(TestUtils.TEXT_COLOR_RED + "testLoadData: loadUserData: TC1 FAILED" + TestUtils.TEXT_COLOR_RESET);
 
-		// The above only verification is basic (simple, weak) 
-		// To do STRONGER verification, we would need more assertions for user names and account balances, etc.
+
 		
 		SimpleBankingApp.loadAccountData();
 		if (SimpleBankingApp.accounts.size() == 4)
 			System.out.println(TestUtils.TEXT_COLOR_GREEN + "testLoadData: loadAccountData: TC1 passed" + TestUtils.TEXT_COLOR_RESET);
 		else
 			System.out.println(TestUtils.TEXT_COLOR_RED + "testLoadData: loadAccountData: TC1 FAILED" + TestUtils.TEXT_COLOR_RESET);
-		
-		// 4-Teardown phase: if our goal was to only test the load, as Teardown (mainApp.accounts)
-		// we would have deleted the loaded deleted from memory (variables users, and accounts), but we want
-		// to use those data in the other tests, thus, we do not do any Teardown in this test case
+
+
 	}
-	
-	// this test method (test case) verifies if the Deposit feature works properly
+
+
 	public static void testDeposits() {
 		// 1-Setup phase
 		double balanceBefore = SimpleBankingApp.getBalance("5495-1234"); 
 		double depositAmount = 50.21;
-		
-		// 2-Exercise phase
+
+
 		SimpleBankingApp.addTransaction("5495-1234", depositAmount);
 		double balanceAfter = SimpleBankingApp.getBalance("5495-1234");
-		
-		// 3-verify
+
 		assert balanceBefore + depositAmount == balanceAfter;
 		if (balanceBefore + depositAmount == balanceAfter)
 			System.out.println(TestUtils.TEXT_COLOR_GREEN + "testDeposits: TC1 passed"+ TestUtils.TEXT_COLOR_RESET);
@@ -54,37 +47,68 @@ public class SimpleBankingAppTest {
 					balanceBefore , depositAmount , balanceAfter, TestUtils.TEXT_COLOR_RESET);
 		}
 		
-		// 4-tear-down: put the system state back in where it was
-		// read more about the tear-down phase of test cases: http://xunitpatterns.com/Four%20Phase%20Test.html
 		SimpleBankingApp.addTransaction("5495-1234", -depositAmount);
 	}
 
 	public static void testWithdrawals() {
-		String accountNum = "5495-1234";
-		double balanceBefore = SimpleBankingApp.getBalance(accountNum);
-		double withdrawalAmount = -50.00; // Negative value for withdrawal
+		String account_number = "5495-1234";
+		double initialBalance = SimpleBankingApp.getBalance(account_number);
+		double withdrawalAmount1 = -100.00;
+		double withdrawalAmount2 = -50.50;
+		double expectedBalance = initialBalance + withdrawalAmount1 + withdrawalAmount2;
 
-		// 2-Exercise phase
-		SimpleBankingApp.addTransaction(accountNum, withdrawalAmount);
-		double balanceAfter = SimpleBankingApp.getBalance(accountNum);
+		System.out.println("Starting testWithdrawals...");
 
-		// 3-Verify phase
-		if (balanceBefore + withdrawalAmount == balanceAfter) {
-			System.out.println(TestUtils.TEXT_COLOR_GREEN + "testWithdrawals: TC1 passed" + TestUtils.TEXT_COLOR_RESET);
+		SimpleBankingApp.addTransaction(account_number, withdrawalAmount1);
+		SimpleBankingApp.addTransaction(account_number, withdrawalAmount2);
+
+		double currentBalance = SimpleBankingApp.getBalance(account_number);
+
+		if (currentBalance == expectedBalance) {
+			TestUtils.printPass("testWithdrawals");
 		} else {
-			System.out.println(TestUtils.TEXT_COLOR_RED + "testWithdrawals: TC1 FAILED");
-			System.out.format("testWithdrawals: Expected %.2f; Actual %.2f %s\n",
-					(balanceBefore + withdrawalAmount), balanceAfter, TestUtils.TEXT_COLOR_RESET);
+			TestUtils.printFail("testWithdrawals (Expected " + expectedBalance + " but got " + currentBalance + ")");
+		}
+	}
+
+	public static void testAddTransaction() {
+		String validAccountNumber = "5495-1234";
+		String invalidAccountNumber = "0000-0000";
+		double amount = 100.00;
+		Double failAmount = 100000.00;
+
+		System.out.println("Starting testAddTransaction...");
+
+
+		boolean resultValid = SimpleBankingApp.addTransaction(validAccountNumber, amount);
+		if (resultValid) {
+			TestUtils.printPass("testAddTransaction: TC1 - Valid Account");
+		} else {
+			TestUtils.printFail("testAddTransaction: TC1 - Valid Account");
 		}
 
-		SimpleBankingApp.addTransaction(accountNum, -withdrawalAmount);
+
+		boolean resultInvalid = SimpleBankingApp.addTransaction(invalidAccountNumber, amount);
+		if (!resultInvalid) {
+			TestUtils.printPass("testAddTransaction: TC2 - Invalid Account (Properly Rejected)");
+		} else {
+			TestUtils.printFail("testAddTransaction: TC2 - Invalid Account (Failed to Reject)");
+		}
+		boolean amountInvalid = SimpleBankingApp.addTransaction(validAccountNumber, failAmount);
+		if (!amountInvalid) {
+			TestUtils.printPass("testAddTransaction: TC3 - Invalid Account (Amount Rejected)");
+		}else{
+			TestUtils.printFail("testAddTransaction: TC3 - Invalid Account (Amount Rejected)");
+		}
 	}
+
+
 	
 	public static void main(String[] args) {
-		// we need to call our test cases (methods)
 		testLoadData();
 		testDeposits();
 		testWithdrawals();
+		testAddTransaction();
 	}
 
 }

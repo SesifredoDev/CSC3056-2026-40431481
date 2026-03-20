@@ -55,4 +55,9 @@ public class User {
         this.mobile_number = mobile_number;
     }
 
+    @Override
+    public String toString() {
+        return String.format("%-25s| %-15s| %-15s| %-15s", username, password, first_name, last_name);
+    }
+
 }

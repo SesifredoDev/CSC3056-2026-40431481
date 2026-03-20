@@ -4,6 +4,7 @@ package app;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Vector;
 
 import model.Account;
@@ -14,7 +15,9 @@ public class SimpleBankingApp {
 	public static Vector<User> users = new Vector<User>();
 	public static Vector<Account> accounts  = new Vector<Account>();
 	public static Vector<Transaction> transactions =  new Vector<Transaction>();
-	
+
+	public static final double MAX_LIMIT = 10000.0;
+
 	public static void loadUserData() {
 		// structure of each record: username (email address), password, first_name, last_name, mobile_number
 		
@@ -73,28 +76,31 @@ public class SimpleBankingApp {
 		
 		System.out.println();
 	}
-	
-	public static void addTransaction(String account_number, double amount) { 
-		Transaction aTransaction =  new Transaction(account_number, amount, Calendar.getInstance().getTime());
-		transactions.add(aTransaction);
+
+
+	public static boolean isAmountValid(double amount) {
+		return Math.abs(amount) <= MAX_LIMIT;
 	}
+
+	public static boolean addTransaction(String account_number, double amount) {
+		for (Account a : accounts) {
+
+			if (a.getAccount_number().equals(account_number) && isAmountValid(amount)) {
+				transactions.add(new Transaction(account_number, amount, new Date()));
+				return true;
+			}
+		}
+		return false; // Account not found
+	}
+
 	
-	/**
-	 * Calculate the balance of a given account (by its number). To do that, it needs to go over all transactions
-	 * that match the account and get their sum total. For example, if an account has only two transactions in the 
-	 * system, with values = $10.79 and $-140, the balance would be $-129.21
-	 * 
-	 * @param account_number
-	 * @return A double value, being the balance of the account
-	 */
+
 	public static double getBalance(String account_number) {
 		double balance = 0;
 
-		// Iterate through the global transactions vector
 		for (int i = 0; i < transactions.size(); i++) {
 			Transaction transaction = transactions.get(i);
 
-			// Check if the transaction belongs to the requested account_number
 			if (transaction.getAccount_number().equals(account_number)) {
 				balance += transaction.getTransaction_amount();
 			}
@@ -102,7 +108,7 @@ public class SimpleBankingApp {
 
 		return balance;
 	}
-	
+
 	
 	//////////////////////////////////////////////////////
 	public static void main(String[] args) {
@@ -133,5 +139,8 @@ public class SimpleBankingApp {
 		
 
 	}
+
+
+
 
 }
